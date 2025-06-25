@@ -21,7 +21,6 @@ const Home = () => {
   }, [dispatch, products.length]);
 
  const handleAddToCart = (product) => {
-  console.log("🛒 Add to cart clicked:", product.title);
   dispatch(addToCartAsync(product));
 };
 
