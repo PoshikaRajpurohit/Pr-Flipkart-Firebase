@@ -38,6 +38,11 @@ const cartReducer = (state = initialState, action) => {
 
     case "CART_ERROR":
       return { ...state, loading: false, error: action.payload };
+      case "CLEAR_CART":
+  return {
+    ...state,
+    cartItems: [],
+  };
 
     default:
       return state;

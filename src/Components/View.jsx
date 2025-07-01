@@ -18,9 +18,9 @@ const ViewProduct = () => {
     navigate("/cart");
   };
   const handleBuyNow = () => {
-    dispatch(addToCartAsync(product));
-    navigate("/");
-  };
+  navigate("/checkout", { state: { product } }); 
+};
+
   if (isLoading || !product) {
     return (
       <div className="text-center my-5">

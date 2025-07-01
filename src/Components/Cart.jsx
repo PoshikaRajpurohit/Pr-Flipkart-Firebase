@@ -9,14 +9,22 @@ import "../App.css";
 
 const Cart = () => {
   const { cartItems, loading } = useSelector((state) => state.cartReducer);
+  const { user } = useSelector((state) => state.authReducer); 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showOrderModal, setShowOrderModal] = useState(false);
-  useEffect(() => {
+ useEffect(() => {
+  if (user) {
     dispatch(fetchCartAsync());
-  }, [dispatch]);
-  const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const totalDiscount = cartItems.reduce((acc, item) => acc + item.qty * 100, 0);
+  }
+  }, [user, dispatch]); 
+  useEffect(() => {
+    if (!user) {
+      navigate("/sign-in");
+    }
+  }, [user, navigate]);
+  const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const totalDiscount = cartItems.reduce((acc, item) => acc + item.quantity * 100, 0);
   const platformFee = 4;
   const finalAmount = totalAmount - totalDiscount + platformFee;
   const handlePlaceOrder = () => {
@@ -48,7 +56,7 @@ const Cart = () => {
                           <Card.Title className="fw-semibold">{item.title}</Card.Title>
                           <Card.Text className="text-muted">Seller: RetailMart</Card.Text>
                           <Card.Text className="text-success fw-bold fs-5">
-                            ₹{item.price * item.qty}
+                            ₹{item.price * item.quantity}
                           </Card.Text>
                           <Card.Text className="text-muted">Delivery by Jun 25</Card.Text>
                         </Card.Body>
@@ -59,7 +67,7 @@ const Cart = () => {
                             <Button variant="outline-secondary" size="sm" onClick={() => dispatch(decrementQtyAsync(item.id))}>
                               -
                             </Button>
-                            <span className="fw-bold">{item.qty}</span>
+                            <span className="fw-bold">{item.quantity}</span>
                             <Button variant="outline-secondary" size="sm" onClick={() => dispatch(incrementQtyAsync(item.id))}>
                               +
                             </Button>
@@ -84,7 +92,7 @@ const Cart = () => {
                   <h5 className="mb-3">PRICE DETAILS</h5>
                   <hr />
                   <div className="d-flex justify-content-between mb-2">
-                    <span>Price ({cartItems.reduce((acc, item) => acc + item.qty, 0)} items)</span>
+                    <span>Price ({cartItems.reduce((acc, item) => acc + item.quantity, 0)} items)</span>
                     <span>₹{totalAmount}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2 text-success">

@@ -8,6 +8,7 @@ const AddProduct = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isCreated, errorMsg } = useSelector((state) => state.productReducer);
+  const { user } = useSelector(state => state.authReducer);
   const initialState = {
     id: "",
     title: "",
@@ -62,6 +63,11 @@ const AddProduct = () => {
       navigate("/");
     }
   }, [isCreated, navigate]);
+    useEffect(() => {
+    if (!user) {
+      navigate("/sign-in");
+    }
+  }, [user, navigate]);
 
   return (
     <Container className="d-flex justify-content-center align-items-center min-vh-100">

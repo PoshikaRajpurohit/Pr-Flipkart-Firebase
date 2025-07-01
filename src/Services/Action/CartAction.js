@@ -1,55 +1,84 @@
 import { db } from "../../Firebase";
-import {collection,doc,setDoc,updateDoc,deleteDoc,getDocs} from "firebase/firestore";
-const cartCollection = collection(db, "cart");
-export const fetchCartAsync = () => async (dispatch) => {
-  try {
-    const snapshot = await getDocs(cartCollection);
-    const cartItems = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        qty: data.quantity,
-      };
+import {doc,setDoc,getDoc,} from "firebase/firestore";
+    export const clearCart = () => ({
+      type: "CLEAR_CART",
     });
 
-    dispatch({ type: "SET_CART_ITEMS", payload: cartItems });
-  } catch (error) {
-    console.error("Error fetching cart:", error);
-    dispatch({ type: "CART_ERROR", payload: error.message });
-  }
-};
-export const addToCartAsync = (product) => async (dispatch, getState) => {
-  const existing = getState().cartReducer.cartItems.find(
-    (item) => item.id === product.id
-  );
+    export const fetchCartAsync = () => async (dispatch, getState) => {
+      const { user } = getState().authReducer;
+      if (!user) return;
+      const cartRef = doc(db, "carts", user.uid);
+      const cartSnap = await getDoc(cartRef);
+      if (cartSnap.exists()) {
+        const cartItems = cartSnap.data().items || [];
+        dispatch({ type: "SET_CART_ITEMS", payload: cartItems });
+      } else {
+        dispatch({ type: "SET_CART_ITEMS", payload: [] });
+      }
+    };
 
-  if (existing) {
-    dispatch(incrementQtyAsync(product.id));
-  } else {
-    const newItem = { ...product, quantity: 1 };
-    await setDoc(doc(db, "cart", product.id), newItem);
-    dispatch({ type: "ADD_TO_CART", payload: { ...newItem, qty: 1 } });
-  }
-};
-export const incrementQtyAsync = (id) => async (dispatch, getState) => {
-  const item = getState().cartReducer.cartItems.find((item) => item.id === id);
-  const newQty = item.qty + 1;
-  await updateDoc(doc(db, "cart", id), { quantity: newQty });
-  dispatch({ type: "INCREASE_QUANTITY", payload: id });
-};
-export const decrementQtyAsync = (id) => async (dispatch, getState) => {
-  const item = getState().cartReducer.cartItems.find((item) => item.id === id);
-  const newQty = item.qty - 1;
-  if (newQty > 0) {
-    await updateDoc(doc(db, "cart", id), { quantity: newQty });
-    dispatch({ type: "DECREASE_QUANTITY", payload: id });
-  } else {
-    await deleteDoc(doc(db, "cart", id));
-    dispatch({ type: "REMOVE_FROM_CART", payload: id });
-  }
-};
-export const removeFromCartAsync = (id) => async (dispatch) => {
-  await deleteDoc(doc(db, "cart", id));
-  dispatch({ type: "REMOVE_FROM_CART", payload: id });
-};
+
+
+    export const addToCartAsync = (product) => async (dispatch, getState) => {
+      const { user } = getState().authReducer;
+      if (!user) return;
+      const cartRef = doc(db, "carts", user.uid);
+      const cartSnap = await getDoc(cartRef);
+      let cartItems = cartSnap.exists() ? cartSnap.data().items || [] : [];
+      const existingIndex = cartItems.findIndex((item) => item.id === product.id);
+      if (existingIndex >= 0) {
+        cartItems[existingIndex].quantity += 1;
+      }      else {
+        cartItems.push({
+          ...product,
+          quantity: 1,
+          price: Number(product.price), 
+        });
+      }
+    await setDoc(cartRef, { items: cartItems });
+      dispatch({ type: "SET_CART_ITEMS", payload: cartItems });
+    };
+
+    export const incrementQtyAsync = (id) => async (dispatch, getState) => {
+      const { user } = getState().authReducer;
+      const cartRef = doc(db, "carts", user.uid);
+      const cartSnap = await getDoc(cartRef);
+      if (!cartSnap.exists()) return;
+       const cartItems = cartSnap.data().items || [];
+      const index = cartItems.findIndex((item) => item.id === id);
+      if (index >= 0) {
+        cartItems[index].quantity += 1;
+        await setDoc(cartRef, { items: cartItems });
+        dispatch({ type: "SET_CART_ITEMS", payload: cartItems });
+      }
+    };
+
+
+    export const decrementQtyAsync = (id) => async (dispatch, getState) => {
+      const { user } = getState().authReducer;
+      const cartRef = doc(db, "carts", user.uid);
+      const cartSnap = await getDoc(cartRef);
+      if (!cartSnap.exists()) return;
+      let cartItems = cartSnap.data().items || [];
+      const index = cartItems.findIndex((item) => item.id === id);
+      if (index >= 0) {
+        if (cartItems[index].quantity > 1) {
+          cartItems[index].quantity -= 1;
+        } else {
+          cartItems.splice(index, 1);
+        }
+        await setDoc(cartRef, { items: cartItems });
+        dispatch({ type: "SET_CART_ITEMS", payload: cartItems });
+      }
+    };
+
+    export const removeFromCartAsync = (id) => async (dispatch, getState) => {
+      const { user } = getState().authReducer;
+      const cartRef = doc(db, "carts", user.uid);
+      const cartSnap = await getDoc(cartRef);
+      if (!cartSnap.exists()) return;
+      const cartItems = cartSnap.data().items || [];
+      const updatedItems = cartItems.filter((item) => item.id !== id);
+      await setDoc(cartRef, { items: updatedItems });
+      dispatch({ type: "SET_CART_ITEMS", payload: updatedItems });
+    };

@@ -11,6 +11,7 @@ import { FaShoppingCart, FaEdit, FaTrash } from "react-icons/fa";
 
 const Home = () => {
   const { products = [], isLoading } = useSelector((state) => state.productReducer);
+  const { user } = useSelector((state) => state.authReducer);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -20,9 +21,16 @@ const Home = () => {
     }
   }, [dispatch, products.length]);
 
- const handleAddToCart = (product) => {
-  dispatch(addToCartAsync(product));
-};
+
+
+  const handleAddToCart = (product) => {
+    if (!user) {
+      navigate("/sign-in");
+      return;
+    }
+    dispatch(addToCartAsync(product),user);
+  };
+
 
   const handleView = (id) => {
     navigate(`/view/${id}`);
