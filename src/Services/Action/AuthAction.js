@@ -18,7 +18,7 @@ import { auth } from "./../../Firebase"
         payload: err
         }}
 
-        
+
     export const signUpAsync = (data) => {
         return async (dispatch) => {
             try {
@@ -31,7 +31,6 @@ import { auth } from "./../../Firebase"
             dispatch(errorMsg(error.message));
             }
         }}
-
 
 
     export const signINAsync = (data) => {
