@@ -2,15 +2,19 @@ import {Navbar,Nav,Container,Badge,NavDropdown,Form,InputGroup,Dropdown,} from "
 import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaUserCircle, FaBars, FaSearch } from "react-icons/fa";
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import logo from "../assets/Images/logo.svg";
 import "../App.css"; 
+import { signOutAsync } from "../Services/Action/AuthAction";
+import { clearCart } from "../Services/Action/CartAction";
+
 
 const Header = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const dispatch =useDispatch()
   const { cartItems } = useSelector((state) => state.cartReducer);
-
+  const { user } = useSelector(state => state.authReducer);
   const handleSearch = (e) => {
     e.preventDefault();
     if (search.trim()) {
@@ -18,7 +22,10 @@ const Header = () => {
       setSearch("");
     }
   };
-
+    const handleLogout = () => {
+    dispatch(signOutAsync());
+    clearCart()
+  };
   return (
     <Navbar bg="white" expand="lg" className="shadow-sm py-2 sticky-top">
       <Container fluid>
@@ -38,12 +45,20 @@ const Header = () => {
           </Form>
           <Nav className="ms-auto align-items-center  gap-2 mt-3 mt-lg-0">
             <Dropdown className="hover-dropdown">
-              <Dropdown.Toggle variant="white" id="login-dropdown" className="border-0 navbar">
-                <FaUserCircle className="me-1" />
-                <span>Login</span>
-              </Dropdown.Toggle>
+                {user ? (
+      
+          <Dropdown.Toggle variant="white" id="user-dropdown" className="border-0 navbar">
+            <FaUserCircle className="me-1" />
+            {user.displayName || user.email}
+          </Dropdown.Toggle>
+        
+      ) : (
+        <Link to="/sign-in" className="nav-link">
+          <FaUserCircle className="me-1" /> Login
+        </Link>
+      )}
               <Dropdown.Menu>
-                <Dropdown.Item as={Link} to="/login">
+                <Dropdown.Item as={Link} to="/sign-up">
                   New Customer? Sign Up
                 </Dropdown.Item>
                 <Dropdown.Divider />
@@ -52,6 +67,7 @@ const Header = () => {
                 <Dropdown.Item>Wishlist</Dropdown.Item>
                 <Dropdown.Item>Rewards</Dropdown.Item>
                 <Dropdown.Item>Gift Cards</Dropdown.Item>
+                <Dropdown.Item onClick={handleLogout}>Log Out</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
             <Nav.Link as={Link} to="/cart" className="position-relative navbar">
