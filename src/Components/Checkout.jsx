@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import "../App.css";
 import { FaMoneyCheckAlt, FaRegCreditCard } from "react-icons/fa";
 import { GiBank } from "react-icons/gi";
+import { useSelector } from "react-redux";
 const Checkout = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Checkout = () => {
   };
   const [inputForm, setInputForm] = useState(initialState);
   const [errors, setErrors] = useState({});
+  const { user } = useSelector((state) => state.authReducer);
   useEffect(() => {
     if (!product) {
       navigate("/");
@@ -60,6 +62,11 @@ const Checkout = () => {
     alert("🎉 Order placed successfully!");
     navigate("/");
   };
+  useEffect(() => {
+    if (!user) {
+      navigate("/sign-in");
+    }
+  }, [user, navigate]);
   const { name, address, pin, upiId, paymentMethod, cardNumber, expiry, cvv } = inputForm;
   if (!product) return null;
   return (
