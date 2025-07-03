@@ -10,6 +10,7 @@ import SignIn from './Components/Sign-In';
 import SignUP from './Components/Sign-Up';
 import AuthListener from './Services/Auth';
 import Checkout from './Components/Checkout';
+import NotFound from './Components/NotFound';
 
 const App = () => {
   return (
@@ -26,7 +27,7 @@ const App = () => {
         <Route path="/view/:id" element={<ViewProduct />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/edit/:id" element={<EditProduct/>} />
-        <Route path="*" element={<h1 className='text-center'>404 Not Found</h1>} />
+        <Route path="*" element={<NotFound/>} />
       </Routes>
     </>
   );
